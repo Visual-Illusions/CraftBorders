@@ -60,7 +60,7 @@ public class CraftBorderListener extends VisualIllusionsCanaryPluginInformationC
                     hook.getPlayer().notice("You wake up at spawn in a daze, only remembering a faint voice having said \"You don't belong out here and need to go home...\"");
                     hook.getPlayer().teleportTo(cborders.getWorldSpawn(hook.getPlayer().getWorld().getFqName()));
                 } else {
-                    if(shouldWarn(hook.getPlayer())){
+                    if (shouldWarn(hook.getPlayer())) {
                         hook.getPlayer().notice("A faint voice whispers to you... \"You need to turn back, you don't belong out here\"");
                         lastWarn.put(hook.getPlayer(), System.currentTimeMillis());
                     }
@@ -70,7 +70,7 @@ public class CraftBorderListener extends VisualIllusionsCanaryPluginInformationC
                 if (outside(hook.getPlayer().getWorld().getFqName(), hook.getTo(), 15)) {
                     hook.getPlayer().kill();
                 } else {
-                    if(shouldWarn(hook.getPlayer())){
+                    if (shouldWarn(hook.getPlayer())) {
                         hook.getPlayer().notice("A faint voice whispers to you... \"It's dangerous to be out here. Turn back before you die.\"");
                         lastWarn.put(hook.getPlayer(), System.currentTimeMillis());
                     }
@@ -92,8 +92,8 @@ public class CraftBorderListener extends VisualIllusionsCanaryPluginInformationC
                     hook.getVehicle().teleportTo(cborders.getWorldSpawn(hook.getVehicle().getWorld().getFqName()));
                     hook.getVehicle().getPassenger().teleportTo(cborders.getWorldSpawn(hook.getVehicle().getWorld().getFqName()));
                     if (hook.getVehicle().getPassenger().isPlayer()) {
-                        if(shouldWarn((Player) hook.getVehicle().getPassenger())){
-                           ((Player) hook.getVehicle().getPassenger()).notice("You wake up at spawn in a daze, only remembering a faint voice having said \"You don't belong out here and need to go home...\"");
+                        if (shouldWarn((Player) hook.getVehicle().getPassenger())) {
+                            ((Player) hook.getVehicle().getPassenger()).notice("You wake up at spawn in a daze, only remembering a faint voice having said \"You don't belong out here and need to go home...\"");
                             lastWarn.put((Player) hook.getVehicle().getPassenger(), System.currentTimeMillis());
                         }
                     }
@@ -108,7 +108,7 @@ public class CraftBorderListener extends VisualIllusionsCanaryPluginInformationC
                     if (outside((hook.getVehicle().getPassenger()).getWorld().getFqName(), hook.getTo(), 15)) {
                         ((Player) hook.getVehicle().getPassenger()).kill();
                     } else {
-                        if(shouldWarn((Player) hook.getVehicle().getPassenger())){
+                        if (shouldWarn((Player) hook.getVehicle().getPassenger())) {
                             ((Player) hook.getVehicle().getPassenger()).notice("A faint voice whispers to you... \"It's dangerous to be out here. Turn back before you die.\"");
                             lastWarn.put((Player) hook.getVehicle().getPassenger(), System.currentTimeMillis());
                         }
@@ -145,9 +145,9 @@ public class CraftBorderListener extends VisualIllusionsCanaryPluginInformationC
         return vec.getDistance(cborders.getWorldSpawn(world)) >= (cborders.getWorldRadius(world) + offset) || vec.getBlockY() >= (cborders.getWorldHeight(world) + offset);
     }
 
-    private final boolean shouldWarn(Player player){
-        if(lastWarn.containsKey(player)){
-           return (lastWarn.get(player) + 5000) < System.currentTimeMillis();
+    private final boolean shouldWarn(Player player) {
+        if (lastWarn.containsKey(player)) {
+            return (lastWarn.get(player) + 5000) < System.currentTimeMillis();
         }
         return true;
     }
@@ -173,5 +173,4 @@ public class CraftBorderListener extends VisualIllusionsCanaryPluginInformationC
             }
         }
     }
-    //TWEAK
 }
