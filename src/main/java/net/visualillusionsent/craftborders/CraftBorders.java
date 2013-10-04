@@ -1,7 +1,7 @@
 /*
  * This file is part of CraftBorders.
  *
- * Copyright © 2012 Visual Illusions Entertainment
+ * Copyright © 2013 Visual Illusions Entertainment
  *
  * CraftBorders is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
