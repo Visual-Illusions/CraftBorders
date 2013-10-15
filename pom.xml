@@ -9,7 +9,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <program.status>BETA</program.status>
         <build.number>0-dev</build.number>
-        <canary.main.class>${project.groupId}.${project.artifactId}.canary.CanaryFruitTrees</canary.main.class>
+        <canary.main.class>${project.groupId}.${project.artifactId}.canary.CraftBorders</canary.main.class>
         <vimcplugin.version>1.0u1</vimcplugin.version>
         <build.number>0-dev</build.number>
         <version.check.url>http://visualillusionsent.net/minecraft/plugins/</version.check.url>
