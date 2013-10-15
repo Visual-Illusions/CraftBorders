@@ -7,13 +7,13 @@
     <name>CraftBorders</name>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <program.status>ALPHA</program.status>
-        <build.number>0</build.number>
+        <program.status>BETA</program.status>
+        <build.number>0-dev</build.number>
+        <canary.main.class>${project.groupId}.${project.artifactId}.canary.CanaryFruitTrees</canary.main.class>
+        <vimcplugin.version>1.0u1</vimcplugin.version>
+        <build.number>0-dev</build.number>
         <version.check.url>http://visualillusionsent.net/minecraft/plugins/</version.check.url>
         <devs>darkdiplomat</devs>
-        <!-- Dependency Versions -->
-        <canary.lib.version>1.0-RC-2</canary.lib.version>
-        <viutils.version>1.1.1</viutils.version>
     </properties>
     <description>World Limiter</description>
     <licenses>
@@ -62,26 +62,43 @@
             <id>vi-repo</id>
             <name>Visual Illusions Repository</name>
             <url>http://repo.visualillusionsent.net/</url>
+            <releases>
+                <updatePolicy>always</updatePolicy>
+            </releases>
+            <snapshots>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
         </repository>
     </repositories>
     <dependencies>
-        <!-- Mods -->
-        <dependency>
-            <groupId>net.canarymod</groupId>
-            <artifactId>CanaryLib</artifactId>
-            <version>${canary.lib.version}</version>
-        </dependency>
         <dependency>
             <groupId>net.visualillusionsent</groupId>
-            <artifactId>viutils</artifactId>
-            <version>${viutils.version}</version>
+            <artifactId>vimcplugin</artifactId>
+            <version>${vimcplugin.version}</version>
         </dependency>
-        <!-- Mods End -->
     </dependencies>
     <build>
-        <finalName>${project.name}-${project.version}-b${build.number}-${program.status}</finalName>
+        <finalName>${project.name}-${project.version}-${program.status}-b${build.number}</finalName>
         <plugins>
-            <!-- Update Canary.inf -->
+            <!-- Timestamp for year -->
+            <plugin>
+                <groupId>com.keyboardsamurais.maven</groupId>
+                <artifactId>maven-timestamp-plugin</artifactId>
+                <version>1.0</version>
+                <configuration>
+                    <propertyName>current.year</propertyName>
+                    <timestampPattern>yyyy</timestampPattern>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>pre-clean</phase>
+                        <goals>
+                            <goal>create</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Update Plugin/Mod Description Files -->
             <plugin>
                 <groupId>com.google.code.maven-replacer-plugin</groupId>
                 <artifactId>replacer</artifactId>
@@ -95,39 +112,54 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <file>/${basedir}/target/classes/Canary.inf</file>
+                    <includes>
+                        <!-- CanaryMod -->
+                        <include>target/**/*.inf</include>
+                    </includes>
                     <replacements>
                         <replacement>
-                            <token>$plugin.version$</token>
+                            <token>{plugin.version}</token>
                             <value>${project.version}</value>
                         </replacement>
                         <replacement>
-                            <token>$wiki$</token>
+                            <token>{wiki}</token>
                             <value>${project.url}</value>
                         </replacement>
                         <replacement>
-                            <token>$issues$</token>
+                            <token>{issues}</token>
                             <value>${project.issueManagement.url}</value>
                         </replacement>
                         <replace>
-                            <token>$version.check.url$</token>
+                            <token>{version.check.url}</token>
                             <value>${version.check.url}</value>
                         </replace>
                         <replace>
-                            <token>$program.status$</token>
+                            <token>{program.status}</token>
                             <value>${program.status}</value>
                         </replace>
                         <replace>
-                            <token>$build$</token>
+                            <token>{build}</token>
                             <value>${build.number}</value>
                         </replace>
                         <replace>
-                            <token>$build.time$</token>
+                            <token>{build.time}</token>
                             <value>${maven.build.timestamp}</value>
                         </replace>
                         <replace>
-                            <token>$devs$</token>
+                            <token>{devs}</token>
                             <value>${devs}</value>
+                        </replace>
+                        <replace>
+                            <token>{copyright.years}</token>
+                            <value>${project.inceptionYear}</value>
+                        </replace>
+                        <replace>
+                            <token>{name}</token>
+                            <value>${project.name}</value>
+                        </replace>
+                        <replace>
+                            <token>{canary.main.class}</token>
+                            <value>${canary.main.class}</value>
                         </replace>
                     </replacements>
                     <regex>false</regex>
@@ -148,7 +180,6 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>2.4</version>
                 <configuration>
-                    <finalName>${project.build.finalName}</finalName>
                     <archive>
                         <addMavenDescriptor>false</addMavenDescriptor>
                         <manifest>
@@ -158,8 +189,8 @@
                             <Title>${project.name}</Title>
                             <Version>${project.version}</Version>
                             <Build>${build.number}</Build>
-                            <ProgramStatus>${program.status}</ProgramStatus>
                             <Vendor>Visual Illusions Entertainment</Vendor>
+                            <Built-By>${user.name}</Built-By>
                             <Build-Time>${maven.build.timestamp}</Build-Time>
                         </manifestEntries>
                     </archive>
@@ -191,12 +222,66 @@
                     </mapping>
                     <properties>
                         <name>${project.name}</name>
-                        <copyright>Copyright © ${project.inceptionYear} Visual Illusions Entertainment</copyright>
+                        <copyright>Copyright © ${project.inceptionYear} Visual Illusions Entertainment
+                        </copyright>
                     </properties>
                     <includes>
                         <include>src/main/java/**</include>
                     </includes>
                 </configuration>
+            </plugin>
+            <!-- Need to shade in the needed classes from Visual Illusions Minecraft Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>1.4</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <artifactSet>
+                                <includes>
+                                    <!-- Only need to shade the VIMCPlugin stuff -->
+                                    <include>net.visualillusionsent:vimcplugin</include>
+                                </includes>
+                            </artifactSet>
+                            <filters>
+                                <filter>
+                                    <artifact>net.visualillusionsent:vimcplugin</artifact>
+                                    <includes>
+                                        <include>net/visualillusionsent/minecraft/plugin/canary/**</include>
+                                    </includes>
+                                    <excludes>
+                                        <!-- Bukkit/Spout are unused at this time -->
+                                        <exclude>net/visualillusionsent/minecraft/plugin/bukkit/**</exclude>
+                                        <exclude>net/visualillusionsent/minecraft/plugin/spout/**</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                            <!-- Relocate the classes to appropriate packages -->
+                            <relocations>
+                                <!-- Canary -->
+                                <relocation>
+                                    <pattern>net.visualillusionsent.minecraft.plugin.canary</pattern>
+                                    <shadedPattern>${project.groupId}.${project.artifactId}.canary</shadedPattern>
+                                </relocation>
+                                <!-- don't need Bukkit or Spout at this time
+                                <relocation>
+                                    <pattern>net.visualillusionsent.minecraft.plugin.bukkit</pattern>
+                                    <shadedPattern>${project.groupId}.${project.artifactId}.bukkit</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>net.visualillusionsent.minecraft.plugin.spout</pattern>
+                                    <shadedPattern>${project.groupId}.${project.artifactId}.spout</shadedPattern>
+                                </relocation>
+                                -->
+                            </relocations>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

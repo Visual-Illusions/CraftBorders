@@ -32,6 +32,7 @@ import net.canarymod.hook.player.BlockDestroyHook;
 import net.canarymod.hook.player.BlockPlaceHook;
 import net.canarymod.hook.player.PlayerMoveHook;
 import net.canarymod.plugin.PluginListener;
+import net.visualillusionsent.minecraft.plugin.canary.VisualIllusionsCanaryPluginInformationCommand;
 import net.visualillusionsent.utils.VersionChecker;
 
 import java.util.HashMap;
@@ -48,7 +49,8 @@ public class CraftBorderListener extends VisualIllusionsCanaryPluginInformationC
 
         try {
             Canary.commands().registerCommands(this, plugin, false);
-        } catch (CommandDependencyException ex) {
+        }
+        catch (CommandDependencyException ex) {
         }
     }
 
@@ -59,17 +61,20 @@ public class CraftBorderListener extends VisualIllusionsCanaryPluginInformationC
                 if (outside(hook.getPlayer().getWorld().getFqName(), hook.getTo(), 3)) {
                     hook.getPlayer().notice("You wake up at spawn in a daze, only remembering a faint voice having said \"You don't belong out here and need to go home...\"");
                     hook.getPlayer().teleportTo(cborders.getWorldSpawn(hook.getPlayer().getWorld().getFqName()));
-                } else {
+                }
+                else {
                     if (shouldWarn(hook.getPlayer())) {
                         hook.getPlayer().notice("A faint voice whispers to you... \"You need to turn back, you don't belong out here\"");
                         lastWarn.put(hook.getPlayer(), System.currentTimeMillis());
                     }
                     hook.setCanceled();
                 }
-            } else {
+            }
+            else {
                 if (outside(hook.getPlayer().getWorld().getFqName(), hook.getTo(), 15)) {
                     hook.getPlayer().kill();
-                } else {
+                }
+                else {
                     if (shouldWarn(hook.getPlayer())) {
                         hook.getPlayer().notice("A faint voice whispers to you... \"It's dangerous to be out here. Turn back before you die.\"");
                         lastWarn.put(hook.getPlayer(), System.currentTimeMillis());
@@ -97,17 +102,20 @@ public class CraftBorderListener extends VisualIllusionsCanaryPluginInformationC
                             lastWarn.put((Player) hook.getVehicle().getPassenger(), System.currentTimeMillis());
                         }
                     }
-                } else {
+                }
+                else {
                     if (hook.getVehicle().getPassenger().isPlayer()) {
                         ((Player) hook.getVehicle().getPassenger()).notice("A faint voice whispers to you... \"You need to turn back, you don't belong out here\"");
                     }
                     hook.setCanceled();
                 }
-            } else {
+            }
+            else {
                 if (hook.getVehicle().getPassenger().isPlayer()) {
                     if (outside((hook.getVehicle().getPassenger()).getWorld().getFqName(), hook.getTo(), 15)) {
                         ((Player) hook.getVehicle().getPassenger()).kill();
-                    } else {
+                    }
+                    else {
                         if (shouldWarn((Player) hook.getVehicle().getPassenger())) {
                             ((Player) hook.getVehicle().getPassenger()).notice("A faint voice whispers to you... \"It's dangerous to be out here. Turn back before you die.\"");
                             lastWarn.put((Player) hook.getVehicle().getPassenger(), System.currentTimeMillis());
@@ -152,23 +160,26 @@ public class CraftBorderListener extends VisualIllusionsCanaryPluginInformationC
         return true;
     }
 
-    @Command(aliases = {"craftborders"},
+    @Command(aliases = { "craftborders" },
             description = "Displays plugin information",
-            permissions = {""},
+            permissions = { "" },
             toolTip = "CraftBorders Information Command")
     public final void infoCommand(MessageReceiver msgrec, String[] args) {
         for (String msg : about) {
             if (msg.equals("$VERSION_CHECK$")) {
                 VersionChecker vc = plugin.getVersionChecker();
-                Boolean islatest = vc.isLatest();
-                if (islatest == null) {
+                Boolean isLatest = vc.isLatest();
+                if (isLatest == null) {
                     msgrec.message(center(Colors.GRAY + "VersionCheckerError: " + vc.getErrorMessage()));
-                } else if (!islatest) {
+                }
+                else if (!isLatest) {
                     msgrec.message(center(Colors.GRAY + vc.getUpdateAvailibleMessage()));
-                } else {
+                }
+                else {
                     msgrec.message(center(Colors.LIGHT_GREEN + "Latest Version Installed"));
                 }
-            } else {
+            }
+            else {
                 msgrec.message(msg);
             }
         }

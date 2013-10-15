@@ -20,7 +20,7 @@ package net.visualillusionsent.craftborders;
 import net.canarymod.Canary;
 import net.canarymod.api.world.World;
 import net.canarymod.api.world.position.Position;
-import net.canarymod.plugin.Plugin;
+import net.visualillusionsent.minecraft.plugin.canary.VisualIllusionsCanaryPlugin;
 import net.visualillusionsent.utils.PropertiesFile;
 
 public final class CraftBorders extends VisualIllusionsCanaryPlugin {
