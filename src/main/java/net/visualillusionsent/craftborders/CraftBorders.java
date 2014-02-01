@@ -1,7 +1,7 @@
 /*
  * This file is part of CraftBorders.
  *
- * Copyright © 2013 Visual Illusions Entertainment
+ * Copyright © 2013-2014 Visual Illusions Entertainment
  *
  * CraftBorders is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,24 +23,35 @@ import net.canarymod.api.world.position.Position;
 import net.visualillusionsent.minecraft.plugin.canary.VisualIllusionsCanaryPlugin;
 import net.visualillusionsent.utils.PropertiesFile;
 
+import java.util.logging.Logger;
+
 public final class CraftBorders extends VisualIllusionsCanaryPlugin {
 
     private final PropertiesFile bordercfg;
 
     public CraftBorders() {
-        super();
         bordercfg = new PropertiesFile("config/CraftBorders/borders.cfg");
         checkConfig();
     }
 
     @Override
     public final boolean enable() {
-        new CraftBorderListener(this);
+        try {
+            new CraftBorderListener(this);
+        }
+        catch (Exception ex) {
+            getLogman().error("CraftBorders failed to enable...", ex);
+            return false;
+        }
         return true;
     }
 
     @Override
     public final void disable() {
+    }
+
+    final String serverLocale() {
+        return bordercfg.getString("server.locale", "en_US");
     }
 
     final Position getWorldSpawn(String world_name) {
@@ -70,10 +81,26 @@ public final class CraftBorders extends VisualIllusionsCanaryPlugin {
         return bordercfg.getFloat("outside.damage");
     }
 
+    final boolean updateLang() {
+        return bordercfg.getBoolean("update.lang");
+    }
+
+    final boolean reloadConfig() {
+        try {
+            bordercfg.reload();
+            checkConfig();
+            return true;
+        }
+        catch (Exception ex) {
+            return false;
+        }
+    }
+
     private final void checkConfig() {
         if (bordercfg.getHeaderLines().isEmpty()) {
             bordercfg.addHeaderLines("CraftBorders Configuration File", "For each world radius add [worldname].radius=[radius] Ex: default_NORMAL.radius=5000");
         }
+        bordercfg.getString("server.locale", "en_US");
         bordercfg.getBoolean("push.back", true);
         bordercfg.setComments("push.back", "Sets whether the push the player back or damage the player");
         bordercfg.getFloat("outside.damage", 1.0F);
@@ -91,4 +118,11 @@ public final class CraftBorders extends VisualIllusionsCanaryPlugin {
         bordercfg.getInt("default_END.height", 300);
         bordercfg.save();
     }
+
+    //VIMCPlugin
+    @Override
+    public Logger getPluginLogger() {
+        return logger;
+    }
+    //
 }

@@ -1,18 +1,13 @@
-;# {name} - Canary Plugin Configuration File
+;# {name} - English (US) Language File
+;# This file NEEDS to be in UTF-8 format!
+;# This file is also the default Language file and needs to be included
+;# DO NOT MODIFY THIS FILE! clone the file to create new translations.
+;# Saving the new file as <localeCode>.lang
 
-name={name}
-main-class={canary.main.class}
-author=Visual Illusions Entertainment
-version={plugin.version}
-
-;Visual Illusions Specific Settings
-developers={devs}
-build.number={build}
-build.time={build.time}
-status.url={status.url}
-wiki.url={wiki}
-issues.url={issues}
-copyright.years={copyright.years}
+outside.border.respawn=You wake up at spawn in a daze, only remembering a faint voice having said "You don't belong out here and need to go home..."
+outside.border.warn=A faint voice whispers to you... "You need to turn back, you don't belong out here"
+outside.border.warn.death=A faint voice whispers to you... "It's dangerous to be out here. Turn back before you die."
+outside.border.killed=See what you did?...
 
 #;
 #; This file is part of {name}.

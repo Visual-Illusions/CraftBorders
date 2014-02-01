@@ -1,7 +1,7 @@
 /*
  * This file is part of CraftBorders.
  *
- * Copyright © 2013 Visual Illusions Entertainment
+ * Copyright © 2013-2014 Visual Illusions Entertainment
  *
  * CraftBorders is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,8 +20,8 @@ package net.visualillusionsent.craftborders;
 import net.canarymod.Canary;
 import net.canarymod.api.DamageType;
 import net.canarymod.api.entity.living.humanoid.Player;
+import net.canarymod.api.entity.vehicle.Vehicle;
 import net.canarymod.api.world.position.Vector3D;
-import net.canarymod.chat.Colors;
 import net.canarymod.chat.MessageReceiver;
 import net.canarymod.commandsys.Command;
 import net.canarymod.commandsys.CommandDependencyException;
@@ -30,99 +30,92 @@ import net.canarymod.hook.entity.VehicleEnterHook;
 import net.canarymod.hook.entity.VehicleMoveHook;
 import net.canarymod.hook.player.BlockDestroyHook;
 import net.canarymod.hook.player.BlockPlaceHook;
+import net.canarymod.hook.player.DisconnectionHook;
 import net.canarymod.hook.player.PlayerMoveHook;
 import net.canarymod.plugin.PluginListener;
 import net.visualillusionsent.minecraft.plugin.canary.VisualIllusionsCanaryPluginInformationCommand;
-import net.visualillusionsent.utils.VersionChecker;
 
 import java.util.HashMap;
 
 public class CraftBorderListener extends VisualIllusionsCanaryPluginInformationCommand implements PluginListener {
 
-    private final CraftBorders cborders;
-    private final HashMap<Player, Long> lastWarn = new HashMap<Player, Long>(); // Reduce Spam
+    private final CraftBorders borders;
+    private final Guardian guardian;
+    private final HashMap<Player, Long> lastWarn = new HashMap<Player, Long>(); // Reduce Warn Spam
 
-    public CraftBorderListener(CraftBorders craftBorders) {
+    public CraftBorderListener(CraftBorders craftBorders) throws CommandDependencyException {
         super(craftBorders);
-        Canary.hooks().registerListener(this, craftBorders);
-        this.cborders = craftBorders;
+        craftBorders.registerListener(this);
+        craftBorders.registerCommands(this, false);
+        this.borders = craftBorders;
+        this.guardian = new Guardian(craftBorders, craftBorders.serverLocale());
+    }
 
-        try {
-            Canary.commands().registerCommands(this, plugin, false);
-        }
-        catch (CommandDependencyException ex) {
-        }
+    private void schedule(Player player, Vehicle vehicle) {
+        Canary.getServer().addSynchronousTask(new DelayedRespawn(borders, player, vehicle));
     }
 
     @HookHandler
     public final void onPlayerHitTheGodDamnWall(PlayerMoveHook hook) {
-        if (outside(hook.getPlayer().getWorld().getFqName(), hook.getTo(), 0)) {
-            if (cborders.pushBack()) {
-                if (outside(hook.getPlayer().getWorld().getFqName(), hook.getTo(), 3)) {
-                    hook.getPlayer().notice("You wake up at spawn in a daze, only remembering a faint voice having said \"You don't belong out here and need to go home...\"");
-                    hook.getPlayer().teleportTo(cborders.getWorldSpawn(hook.getPlayer().getWorld().getFqName()));
+        final Player player = hook.getPlayer();
+        if (outside(player.getWorld().getFqName(), hook.getTo(), 0)) {
+            if (borders.pushBack()) {
+                if (outside(player.getWorld().getFqName(), hook.getTo(), 2)) { // Stuck
+                    guardian.wisper(player, "outside.border.respawn");
+                    schedule(player, null);
                 }
-                else {
-                    if (shouldWarn(hook.getPlayer())) {
-                        hook.getPlayer().notice("A faint voice whispers to you... \"You need to turn back, you don't belong out here\"");
-                        lastWarn.put(hook.getPlayer(), System.currentTimeMillis());
-                    }
-                    hook.setCanceled();
+                else if (shouldWarn(player)) {
+                    guardian.wisper(player, "outside.border.warn");
+                    lastWarn.put(player, System.currentTimeMillis());
                 }
+                hook.setCanceled();
             }
             else {
-                if (outside(hook.getPlayer().getWorld().getFqName(), hook.getTo(), 15)) {
-                    hook.getPlayer().kill();
+                if (outside(player.getWorld().getFqName(), hook.getTo(), 15)) {
+                    guardian.wisper(player, "outside.border.killed");
+                    player.kill();
                 }
-                else {
-                    if (shouldWarn(hook.getPlayer())) {
-                        hook.getPlayer().notice("A faint voice whispers to you... \"It's dangerous to be out here. Turn back before you die.\"");
-                        lastWarn.put(hook.getPlayer(), System.currentTimeMillis());
-                    }
-                    hook.getPlayer().getCapabilities().setInvulnerable(false);
-                    hook.getPlayer().dealDamage(DamageType.GENERIC, cborders.outsideDamage());
+                else if (shouldWarn(player)) {
+                    guardian.wisper(player, "outside.border.warn.death");
+                    lastWarn.put(hook.getPlayer(), System.currentTimeMillis());
                 }
+                player.getCapabilities().setInvulnerable(false);
+                player.dealDamage(DamageType.GENERIC, borders.outsideDamage());
             }
         }
     }
 
     @HookHandler
     public final void onVehicleHitTheGodDamnWall(VehicleMoveHook hook) {
-        if (hook.getVehicle().isEmpty()) {
-            return; // Don't worry about empty vehicles
+        Vehicle vehicle = hook.getVehicle();
+        if (vehicle.isEmpty() || !vehicle.getPassenger().isPlayer()) {
+            return; // Don't worry about empty or non-player passenger
         }
-        if (outside(hook.getVehicle().getWorld().getFqName(), hook.getTo(), 0)) {
-            if (cborders.pushBack()) {
-                if (outside(hook.getVehicle().getWorld().getFqName(), hook.getTo(), 3)) {
-                    hook.getVehicle().teleportTo(cborders.getWorldSpawn(hook.getVehicle().getWorld().getFqName()));
-                    hook.getVehicle().getPassenger().teleportTo(cborders.getWorldSpawn(hook.getVehicle().getWorld().getFqName()));
-                    if (hook.getVehicle().getPassenger().isPlayer()) {
-                        if (shouldWarn((Player) hook.getVehicle().getPassenger())) {
-                            ((Player) hook.getVehicle().getPassenger()).notice("You wake up at spawn in a daze, only remembering a faint voice having said \"You don't belong out here and need to go home...\"");
-                            lastWarn.put((Player) hook.getVehicle().getPassenger(), System.currentTimeMillis());
-                        }
-                    }
+        Player player = (Player) vehicle.getPassenger();
+        if (outside(vehicle.getWorld().getFqName(), hook.getTo(), 0)) {
+            if (borders.pushBack()) {
+                if (outside(vehicle.getWorld().getFqName(), hook.getTo(), 2)) { // Stuck
+                    guardian.wisper(player, "outside.border.respawn");
+                    schedule(player, vehicle);
                 }
-                else {
-                    if (hook.getVehicle().getPassenger().isPlayer()) {
-                        ((Player) hook.getVehicle().getPassenger()).notice("A faint voice whispers to you... \"You need to turn back, you don't belong out here\"");
-                    }
-                    hook.setCanceled();
+                else if (shouldWarn(player)) {
+                    guardian.wisper(player, "outside.border.warn");
+                    lastWarn.put(player, System.currentTimeMillis());
                 }
+                hook.setCanceled();
             }
             else {
-                if (hook.getVehicle().getPassenger().isPlayer()) {
-                    if (outside((hook.getVehicle().getPassenger()).getWorld().getFqName(), hook.getTo(), 15)) {
-                        ((Player) hook.getVehicle().getPassenger()).kill();
+                if (outside((hook.getVehicle().getPassenger()).getWorld().getFqName(), hook.getTo(), 15)) {
+                    player.kill();
+                    vehicle.destroy();
+                }
+                else {
+                    if (shouldWarn((Player) hook.getVehicle().getPassenger())) {
+                        guardian.wisper(player, "outside.border.warn.death");
+                        lastWarn.put((Player) hook.getVehicle().getPassenger(), System.currentTimeMillis());
                     }
-                    else {
-                        if (shouldWarn((Player) hook.getVehicle().getPassenger())) {
-                            ((Player) hook.getVehicle().getPassenger()).notice("A faint voice whispers to you... \"It's dangerous to be out here. Turn back before you die.\"");
-                            lastWarn.put((Player) hook.getVehicle().getPassenger(), System.currentTimeMillis());
-                        }
-                        ((Player) hook.getVehicle().getPassenger()).getCapabilities().setInvulnerable(false);
-                        ((Player) hook.getVehicle().getPassenger()).dealDamage(DamageType.GENERIC, cborders.outsideDamage());
-                    }
+                    player.getCapabilities().setInvulnerable(false);
+                    player.dealDamage(DamageType.GENERIC, borders.outsideDamage());
                 }
             }
         }
@@ -136,7 +129,7 @@ public class CraftBorderListener extends VisualIllusionsCanaryPluginInformationC
     }
 
     @HookHandler
-    public final void onPlayerDestoryOutsideTheGodDamnWall(BlockDestroyHook hook) {
+    public final void onPlayerDestroyOutsideTheGodDamnWall(BlockDestroyHook hook) {
         if (outside(hook.getBlock().getWorld().getFqName(), hook.getBlock().getLocation(), 0)) {
             hook.setCanceled();
         }
@@ -149,11 +142,16 @@ public class CraftBorderListener extends VisualIllusionsCanaryPluginInformationC
         }
     }
 
-    private final boolean outside(String world, Vector3D vec, int offset) { //offset is for stranded deep in the outside
-        return vec.getDistance(cborders.getWorldSpawn(world)) >= (cborders.getWorldRadius(world) + offset) || vec.getBlockY() >= (cborders.getWorldHeight(world) + offset);
+    @HookHandler
+    public final void playerGone(DisconnectionHook hook) {
+        lastWarn.remove(hook.getPlayer()); // Drop reference so garbage collection can dispose of the instance
     }
 
-    private final boolean shouldWarn(Player player) {
+    private boolean outside(String world, Vector3D vec, int offset) { //offset is for stranded deep in the outside
+        return vec.getDistance(borders.getWorldSpawn(world)) >= (borders.getWorldRadius(world) + offset) || vec.getBlockY() >= (borders.getWorldHeight(world) + offset);
+    }
+
+    private boolean shouldWarn(Player player) {
         if (lastWarn.containsKey(player)) {
             return (lastWarn.get(player) + 5000) < System.currentTimeMillis();
         }
@@ -163,25 +161,18 @@ public class CraftBorderListener extends VisualIllusionsCanaryPluginInformationC
     @Command(aliases = { "craftborders" },
             description = "Displays plugin information",
             permissions = { "" },
-            toolTip = "CraftBorders Information Command")
+            toolTip = "/craftborders [reload]")
     public final void infoCommand(MessageReceiver msgrec, String[] args) {
-        for (String msg : about) {
-            if (msg.equals("$VERSION_CHECK$")) {
-                VersionChecker vc = plugin.getVersionChecker();
-                Boolean isLatest = vc.isLatest();
-                if (isLatest == null) {
-                    msgrec.message(center(Colors.GRAY + "VersionCheckerError: " + vc.getErrorMessage()));
-                }
-                else if (!isLatest) {
-                    msgrec.message(center(Colors.GRAY + vc.getUpdateAvailibleMessage()));
-                }
-                else {
-                    msgrec.message(center(Colors.LIGHT_GREEN + "Latest Version Installed"));
-                }
+        if (args.length > 1 && args[1].equals("reload")) {
+            if (borders.reloadConfig()) {
+                msgrec.notice("CraftBorders Configuration reloaded.");
             }
             else {
-                msgrec.message(msg);
+                msgrec.notice("Reload failed...");
             }
+        }
+        else {
+            super.sendInformation(msgrec);
         }
     }
 }

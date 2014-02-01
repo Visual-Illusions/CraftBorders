@@ -3,16 +3,14 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>net.visualillusionsent</groupId>
     <artifactId>craftborders</artifactId>
-    <version>1.0</version>
+    <version>1.0.0-SNAPSHOT</version>
     <name>CraftBorders</name>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <program.status>BETA</program.status>
-        <build.number>0-dev</build.number>
-        <canary.main.class>${project.groupId}.${project.artifactId}.canary.CraftBorders</canary.main.class>
-        <vimcplugin.version>1.0u1</vimcplugin.version>
-        <build.number>0-dev</build.number>
-        <version.check.url>http://visualillusionsent.net/minecraft/plugins/</version.check.url>
+        <build.number></build.number>
+        <canary.main.class>net.visualillusionsent.craftborders.CraftBorders</canary.main.class>
+        <vimcplugin.version>1.1.0-SNAPSHOT</vimcplugin.version>
+        <status.url>http://status.visualillusionsent.net/</status.url>
         <devs>darkdiplomat</devs>
     </properties>
     <description>World Limiter</description>
@@ -32,7 +30,7 @@
             </comments>
         </license>
     </licenses>
-    <url>http://wiki.visualillusionsent.net/CraftBorders</url>
+    <url>http://wiki.visualillusionsent.net/view/CraftBorders</url>
     <inceptionYear>2013</inceptionYear>
     <organization>
         <name>Visual Illusions Entertainment</name>
@@ -54,20 +52,14 @@
     <distributionManagement>
         <repository>
             <id>vi-repo</id>
-            <url>ftp://repo.visualillusionsent.net/</url>
+            <url>http://repo2.visualillusionsent.net/repository/public/</url>
         </repository>
     </distributionManagement>
     <repositories>
         <repository>
             <id>vi-repo</id>
             <name>Visual Illusions Repository</name>
-            <url>http://repo.visualillusionsent.net/</url>
-            <releases>
-                <updatePolicy>always</updatePolicy>
-            </releases>
-            <snapshots>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
+            <url>http://repo2.visualillusionsent.net/</url>
         </repository>
     </repositories>
     <dependencies>
@@ -78,7 +70,6 @@
         </dependency>
     </dependencies>
     <build>
-        <finalName>${project.name}-${project.version}-${program.status}-b${build.number}</finalName>
         <plugins>
             <!-- Timestamp for year -->
             <plugin>
@@ -113,8 +104,15 @@
                 </executions>
                 <configuration>
                     <includes>
+                        <!-- Other files -->
+                        <include>target/**/*.cfg</include>
+                        <include>target/**/*.txt</include>
+                        <include>target/**/*.lang</include>
+                        <include>target/**/*.readme</include>
                         <!-- CanaryMod -->
                         <include>target/**/*.inf</include>
+                        <!-- Bukkit -->
+                        <include>target/**/*.yml</include>
                     </includes>
                     <replacements>
                         <replacement>
@@ -130,12 +128,8 @@
                             <value>${project.issueManagement.url}</value>
                         </replacement>
                         <replace>
-                            <token>{version.check.url}</token>
-                            <value>${version.check.url}</value>
-                        </replace>
-                        <replace>
-                            <token>{program.status}</token>
-                            <value>${program.status}</value>
+                            <token>{status.url}</token>
+                            <value>${status.url}</value>
                         </replace>
                         <replace>
                             <token>{build}</token>
@@ -151,7 +145,7 @@
                         </replace>
                         <replace>
                             <token>{copyright.years}</token>
-                            <value>${project.inceptionYear}</value>
+                            <value>${project.inceptionYear}-${current.year}</value>
                         </replace>
                         <replace>
                             <token>{name}</token>
@@ -212,7 +206,7 @@
                     <quiet>false</quiet>
                     <encoding>UTF-8</encoding>
                     <strictCheck>true</strictCheck>
-                    <header>${basedir}/HEADER_GPL.txt</header>
+                    <header>${basedir}/HEADER.txt</header>
                     <keywords>
                         <keyword>${project.name}</keyword>
                         <keyword>license</keyword>
@@ -222,8 +216,9 @@
                     </mapping>
                     <properties>
                         <name>${project.name}</name>
-                        <copyright>Copyright © ${project.inceptionYear} Visual Illusions Entertainment
-                        </copyright>
+                        <years>${project.inceptionYear}-${current.year}</years>
+                        <gpl.type>GNU General Public License</gpl.type>
+                        <license.url>http://www.gnu.org/licenses/gpl.html</license.url>
                     </properties>
                     <includes>
                         <include>src/main/java/**</include>
@@ -252,7 +247,10 @@
                                 <filter>
                                     <artifact>net.visualillusionsent:vimcplugin</artifact>
                                     <includes>
-                                        <include>net/visualillusionsent/minecraft/plugin/canary/**</include>
+                                        <!-- Always include the license stuff -->
+                                        <include>META-INF/license/**</include>
+                                        <!-- Always include base VIMCPlugin stuff -->
+                                        <include>net/visualillusionsent/minecraft/plugin/**</include>
                                     </includes>
                                     <excludes>
                                         <!-- Bukkit/Spout are unused at this time -->
@@ -263,10 +261,15 @@
                             </filters>
                             <!-- Relocate the classes to appropriate packages -->
                             <relocations>
+                                <!-- Relocate base VIMCPlugin stuff to base of plugin -->
+                                <relocation>
+                                    <pattern>net.visualillusionsent.minecraft.plugin</pattern>
+                                    <shadedPattern>${project.groupId}.${project.artifactId}</shadedPattern>
+                                </relocation>
                                 <!-- Canary -->
                                 <relocation>
                                     <pattern>net.visualillusionsent.minecraft.plugin.canary</pattern>
-                                    <shadedPattern>${project.groupId}.${project.artifactId}.canary</shadedPattern>
+                                    <shadedPattern>${project.groupId}.${project.artifactId}</shadedPattern>
                                 </relocation>
                                 <!-- don't need Bukkit or Spout at this time
                                 <relocation>
