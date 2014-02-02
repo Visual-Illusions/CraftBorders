@@ -30,7 +30,6 @@ import net.canarymod.hook.entity.VehicleEnterHook;
 import net.canarymod.hook.entity.VehicleMoveHook;
 import net.canarymod.hook.player.BlockDestroyHook;
 import net.canarymod.hook.player.BlockPlaceHook;
-import net.canarymod.hook.player.DisconnectionHook;
 import net.canarymod.hook.player.PlayerMoveHook;
 import net.canarymod.plugin.PluginListener;
 import net.visualillusionsent.minecraft.plugin.canary.VisualIllusionsCanaryPluginInformationCommand;
@@ -41,14 +40,14 @@ public class CraftBorderListener extends VisualIllusionsCanaryPluginInformationC
 
     private final CraftBorders borders;
     private final Guardian guardian;
-    private final HashMap<Player, Long> lastWarn = new HashMap<Player, Long>(); // Reduce Warn Spam
+    private final HashMap<String, Long> lastWarn = new HashMap<String, Long>(); // Reduce Warn Spam
 
     public CraftBorderListener(CraftBorders craftBorders) throws CommandDependencyException {
         super(craftBorders);
         craftBorders.registerListener(this);
         craftBorders.registerCommands(this, false);
         this.borders = craftBorders;
-        this.guardian = new Guardian(craftBorders, craftBorders.serverLocale());
+        this.guardian = new Guardian(craftBorders);
     }
 
     private void schedule(Player player, Vehicle vehicle) {
@@ -64,9 +63,8 @@ public class CraftBorderListener extends VisualIllusionsCanaryPluginInformationC
                     guardian.wisper(player, "outside.border.respawn");
                     schedule(player, null);
                 }
-                else if (shouldWarn(player)) {
-                    guardian.wisper(player, "outside.border.warn");
-                    lastWarn.put(player, System.currentTimeMillis());
+                else {
+                    warn(player, false);
                 }
                 hook.setCanceled();
             }
@@ -75,12 +73,10 @@ public class CraftBorderListener extends VisualIllusionsCanaryPluginInformationC
                     guardian.wisper(player, "outside.border.killed");
                     player.kill();
                 }
-                else if (shouldWarn(player)) {
-                    guardian.wisper(player, "outside.border.warn.death");
-                    lastWarn.put(hook.getPlayer(), System.currentTimeMillis());
+                else {
+                    warn(player, true);
                 }
-                player.getCapabilities().setInvulnerable(false);
-                player.dealDamage(DamageType.GENERIC, borders.outsideDamage());
+                punch(player);
             }
         }
     }
@@ -98,9 +94,8 @@ public class CraftBorderListener extends VisualIllusionsCanaryPluginInformationC
                     guardian.wisper(player, "outside.border.respawn");
                     schedule(player, vehicle);
                 }
-                else if (shouldWarn(player)) {
-                    guardian.wisper(player, "outside.border.warn");
-                    lastWarn.put(player, System.currentTimeMillis());
+                else {
+                    warn(player, false);
                 }
                 hook.setCanceled();
             }
@@ -110,13 +105,9 @@ public class CraftBorderListener extends VisualIllusionsCanaryPluginInformationC
                     vehicle.destroy();
                 }
                 else {
-                    if (shouldWarn((Player) hook.getVehicle().getPassenger())) {
-                        guardian.wisper(player, "outside.border.warn.death");
-                        lastWarn.put((Player) hook.getVehicle().getPassenger(), System.currentTimeMillis());
-                    }
-                    player.getCapabilities().setInvulnerable(false);
-                    player.dealDamage(DamageType.GENERIC, borders.outsideDamage());
+                    warn(player, true);
                 }
+                punch(player);
             }
         }
     }
@@ -142,20 +133,27 @@ public class CraftBorderListener extends VisualIllusionsCanaryPluginInformationC
         }
     }
 
-    @HookHandler
-    public final void playerGone(DisconnectionHook hook) {
-        lastWarn.remove(hook.getPlayer()); // Drop reference so garbage collection can dispose of the instance
-    }
-
     private boolean outside(String world, Vector3D vec, int offset) { //offset is for stranded deep in the outside
         return vec.getDistance(borders.getWorldSpawn(world)) >= (borders.getWorldRadius(world) + offset) || vec.getBlockY() >= (borders.getWorldHeight(world) + offset);
     }
 
-    private boolean shouldWarn(Player player) {
-        if (lastWarn.containsKey(player)) {
-            return (lastWarn.get(player) + 5000) < System.currentTimeMillis();
+    private void warn(Player player, boolean deathWarn) {
+        if (lastWarn.containsKey(player.getName())) {
+            if ((lastWarn.get(player.getName()) + 5000) >= System.currentTimeMillis()) {
+                return;
+            }
         }
-        return true;
+        if (deathWarn) {
+            guardian.wisper(player, "outside.border.warn.death");
+            lastWarn.put(player.getName(), System.currentTimeMillis());
+        }
+        guardian.wisper(player, "outside.border.warn");
+        lastWarn.put(player.getName(), System.currentTimeMillis());
+    }
+
+    private void punch(Player player) {
+        player.getCapabilities().setInvulnerable(false);
+        player.dealDamage(DamageType.GENERIC, borders.outsideDamage());
     }
 
     @Command(aliases = { "craftborders" },

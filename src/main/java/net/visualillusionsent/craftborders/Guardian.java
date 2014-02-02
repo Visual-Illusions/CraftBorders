@@ -24,8 +24,8 @@ import net.visualillusionsent.minecraft.plugin.MessageTranslator;
  * @author Jason (darkdiplomat)
  */
 public final class Guardian extends MessageTranslator {
-    protected Guardian(CraftBorders borders, String defaultLocale) {
-        super(borders, defaultLocale, borders.updateLang());
+    protected Guardian(CraftBorders borders) {
+        super(borders, borders.serverLocale(), borders.updateLang());
     }
 
     public final void wisper(Player player, String key) {

@@ -30,6 +30,7 @@ public final class CraftBorders extends VisualIllusionsCanaryPlugin {
     private final PropertiesFile bordercfg;
 
     public CraftBorders() {
+        System.out.println("CraftBorders Construct...");
         bordercfg = new PropertiesFile("config/CraftBorders/borders.cfg");
         checkConfig();
     }
@@ -101,7 +102,8 @@ public final class CraftBorders extends VisualIllusionsCanaryPlugin {
             bordercfg.addHeaderLines("CraftBorders Configuration File", "For each world radius add [worldname].radius=[radius] Ex: default_NORMAL.radius=5000");
         }
         bordercfg.getString("server.locale", "en_US");
-        bordercfg.getBoolean("push.back", true);
+        bordercfg.getString("update.lang", "yes");
+        bordercfg.getString("push.back", "yes");
         bordercfg.setComments("push.back", "Sets whether the push the player back or damage the player");
         bordercfg.getFloat("outside.damage", 1.0F);
         bordercfg.setComments("outside.damage", "The amount of damage to cause each step taken outside the border. Default: 1.0F");
