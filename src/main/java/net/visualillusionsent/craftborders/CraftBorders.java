@@ -23,14 +23,11 @@ import net.canarymod.api.world.position.Position;
 import net.visualillusionsent.minecraft.plugin.canary.VisualIllusionsCanaryPlugin;
 import net.visualillusionsent.utils.PropertiesFile;
 
-import java.util.logging.Logger;
-
 public final class CraftBorders extends VisualIllusionsCanaryPlugin {
 
     private final PropertiesFile bordercfg;
 
     public CraftBorders() {
-        System.out.println("CraftBorders Construct...");
         bordercfg = new PropertiesFile("config/CraftBorders/borders.cfg");
         checkConfig();
     }
@@ -120,11 +117,4 @@ public final class CraftBorders extends VisualIllusionsCanaryPlugin {
         bordercfg.getInt("default_END.height", 300);
         bordercfg.save();
     }
-
-    //VIMCPlugin
-    @Override
-    public Logger getPluginLogger() {
-        return logger;
-    }
-    //
 }

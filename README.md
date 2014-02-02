@@ -1,21 +1,22 @@
 ﻿# CraftBorders #
 ### World Limiter ###
-#### Copyright &copy; 2013 Visual Illusions Entertainment ####
+#### Copyright &copy; 2013-2014 Visual Illusions Entertainment ####
 #### Licensed under the GNU General Public License v3 (See License below) ####
 
 ## About ##
 See the [CraftBorders Wiki Page](http://wiki.visualillusionsent.net/CraftBorders) for more information
 
 ## Bug Reporting ##
-Please use the [GitHub issue tracker](https://github.com/Visual-Illusions/CraftBorders/issues) associated with this repository.<br/>
+Please use the [GitHub issue tracker](https://github.com/Visual-Illusions/CraftBorders/issues) associated with this repository.<br/>  
 Be sure to include as much information about the issue as possible, including Server Mod info
 
 ## Compiling ##
-Create a new project in the IDE of your choice<br/>
-:Add a current CanaryMod.jar (1.0-RC-2) to the build path<br/>
-:Export Jar file
 
-CanaryMod can be found at [canarymod.net](http://www.canarymod.net/download)
+Maven is used for dependency management
+
+Install [Maven 3](http://maven.apache.org/download.html)<br/>
+Check out this repository<br/>
+run from command line: mvn clean package<br/>
 
 ## License ##
 

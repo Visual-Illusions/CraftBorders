@@ -6,13 +6,3 @@ name={name}
 main-class={canary.main.class}
 author=Visual Illusions Entertainment
 version={plugin.version}
-
-;Visual Illusions Specific Settings
-developers={devs}
-build.number={build}
-build.time={build.time}
-status.url={status.url}
-wiki.url={wiki}
-issues.url={issues}
-copyright.years={copyright.years}
-
