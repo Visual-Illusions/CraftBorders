@@ -25,6 +25,8 @@ import net.canarymod.api.world.position.Vector3D;
 import net.canarymod.chat.MessageReceiver;
 import net.canarymod.commandsys.Command;
 import net.canarymod.commandsys.CommandDependencyException;
+import net.canarymod.commandsys.TabComplete;
+import net.canarymod.commandsys.TabCompleteHelper;
 import net.canarymod.hook.HookHandler;
 import net.canarymod.hook.entity.VehicleEnterHook;
 import net.canarymod.hook.entity.VehicleMoveHook;
@@ -35,6 +37,7 @@ import net.canarymod.plugin.PluginListener;
 import net.visualillusionsent.minecraft.plugin.canary.VisualIllusionsCanaryPluginInformationCommand;
 
 import java.util.HashMap;
+import java.util.List;
 
 public class CraftBorderListener extends VisualIllusionsCanaryPluginInformationCommand implements PluginListener {
 
@@ -156,12 +159,15 @@ public class CraftBorderListener extends VisualIllusionsCanaryPluginInformationC
         player.dealDamage(DamageType.GENERIC, borders.outsideDamage());
     }
 
-    @Command(aliases = { "craftborders" },
+    @Command(
+            aliases = { "craftborders" },
             description = "Displays plugin information",
             permissions = { "" },
-            toolTip = "/craftborders [reload]")
+            toolTip = "/craftborders [reload]",
+            tabCompleteMethod = "tabComp"
+    )
     public final void craftbordersCommand(MessageReceiver msgrec, String[] args) {
-        if (args.length > 1 && args[1].equals("reload")) {
+        if (args.length > 1 && args[1].equals("reload") && msgrec.hasPermission("craftborders.reload")) {
             if (borders.reloadConfig()) {
                 msgrec.notice(guardian.defaultTranslate("cfg.reload"));
             }
@@ -172,5 +178,13 @@ public class CraftBorderListener extends VisualIllusionsCanaryPluginInformationC
         else {
             super.sendInformation(msgrec);
         }
+    }
+
+    @TabComplete
+    public final List<String> tabComp(MessageReceiver msgrec, String[] args) {
+        if (args.length == 1 && msgrec.hasPermission("craftborders.reload")) {
+            return TabCompleteHelper.matchTo(args, new String[]{ "reload" });
+        }
+        return null;
     }
 }
