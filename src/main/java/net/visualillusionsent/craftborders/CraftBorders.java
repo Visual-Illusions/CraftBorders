@@ -44,10 +44,6 @@ public final class CraftBorders extends VisualIllusionsCanaryPlugin {
         return true;
     }
 
-    @Override
-    public final void disable() {
-    }
-
     final String serverLocale() {
         return bordercfg.getString("server.locale", "en_US");
     }
@@ -94,7 +90,7 @@ public final class CraftBorders extends VisualIllusionsCanaryPlugin {
         }
     }
 
-    private final void checkConfig() {
+    private void checkConfig() {
         if (bordercfg.getHeaderLines().isEmpty()) {
             bordercfg.addHeaderLines("CraftBorders Configuration File", "For each world radius add [worldname].radius=[radius] Ex: default_NORMAL.radius=5000");
         }
